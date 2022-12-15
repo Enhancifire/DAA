@@ -1,6 +1,6 @@
+"""Assignment 1 Binary Search: main.py"""
 import numpy as np
 import random
-from typing import List
 import cProfile
 import pstats
 

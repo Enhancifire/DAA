@@ -1,0 +1,775 @@
+Line numbers: 2, 67, 267, 370, 406, 616, 674, 720
+"""Assignment 1 Binary Search: main.py"""
+import numpy as np
+import random
+import cProfile
+import pstats
+
+
+def create_and_shuffle():
+    arr = np.arange(5000)
+
+    lis = [*arr]
+
+    random.shuffle(lis)
+
+    return lis
+
+
+def binary(arr, x, l, h):
+    print(f"BS Function called at low: {l}, high: {h} for number {x}")
+    if l > h:
+        return False
+
+    else:
+        mid = (l + h) // 2
+        if x == arr[mid]:
+            return mid
+
+        elif x > arr[mid]:
+            return binary(arr, x, mid + 1, h)
+
+        else:
+            return binary(arr, x, l, mid)
+
+
+def main():
+    # num = int(input("Enter the number to search: "))
+    with cProfile.Profile() as pr:
+        num = 30
+
+        shuffled_array = create_and_shuffle()
+
+        shuffled_array.sort()
+
+        high = len(shuffled_array)
+        low = 0
+
+        i = binary(shuffled_array, num, low, high)
+
+        print(f"Number is at position {i} in array")
+        print(f"Number is {shuffled_array[i]}")
+
+    stats = pstats.Stats(pr)
+    stats.sort_stats(pstats.SortKey.TIME)
+    stats.dump_stats(filename="BinarySearchMain.prof")
+
+
+if __name__ == "__main__":
+    with cProfile.Profile() as pr:
+        main()
+
+    stats = pstats.Stats(pr)
+    stats.sort_stats(pstats.SortKey.TIME)
+    stats.print_stats()
+    stats.dump_stats(filename="BinarySearch.txt")
+
+"""Assignment 2 Quick Vs Merge Sort Time Analysis: main.py"""
+from quick import quicksort
+from merge import mergesort
+import random
+from tests import create_best_case, create_test_case, create_worst_case
+from rich import print
+from rich.table import Table
+from timeit import default_timer as timer
+from datetime import timedelta
+
+
+def main():
+
+    tb = Table()
+    tb.add_column("Test No")
+    tb.add_column("Quick Sort")
+    tb.add_column("Merge Sort")
+
+    for i in range(0, 5):
+        a, b = test(i)
+        tb.add_row(str(i), str(a), str(b))
+
+    qb, mb, qw, mw = test_best_and_worst_case()
+
+    tb.add_row("Best Case", str(qb), str(mb))
+    tb.add_row("Worst Case", str(qw), str(mw))
+    print(tb)
+
+
+def test(iteration: int):
+
+    rand = random.randint(0, 100)
+
+    test = create_test_case(rand)
+
+    quick_start = timer()
+    quicksort(0, len(test) - 1, test)
+    quick_end = timer()
+
+    merge_start = timer()
+    mergesort(test)
+    merge_end = timer()
+
+    return (
+        timedelta(seconds=quick_end - quick_start),
+        timedelta(seconds=merge_end - merge_start),
+    )
+
+
+def test_best_and_worst_case():
+    best_case = create_best_case(10)
+    worst_case = create_worst_case(10)
+
+    quick_start = timer()
+    quicksort(0, len(best_case) - 1, best_case)
+    quick_end = timer()
+
+    merge_start = timer()
+    mergesort(best_case)
+    merge_end = timer()
+
+    quick_worst_start = timer()
+    quicksort(0, len(worst_case) - 1, worst_case)
+    quick_worst_end = timer()
+
+    merge_worst_start = timer()
+    mergesort(worst_case)
+    merge_worst_end = timer()
+
+    return (
+        timedelta(seconds=quick_end - quick_start),
+        timedelta(seconds=merge_end - merge_start),
+        timedelta(seconds=quick_worst_end - quick_worst_start),
+        timedelta(seconds=merge_worst_end - merge_worst_start),
+    )
+
+
+if __name__ == "__main__":
+    main()
+
+"""Assignment 2 Quick Vs Merge Sort Time Analysis: merge.py"""
+def mergesort(arr):
+    if len(arr) == 1 or len(arr) == 0:
+        return arr
+
+    else:
+        mid = len(arr) // 2
+        return merge(mergesort(arr[:mid]), mergesort(arr[mid + 1 :]))
+
+
+def merge(arr1, arr2):
+    arr = arr1 + arr2
+    arr.sort()
+    return arr
+
+"""Assignment 2 Quick Vs Merge Sort Time Analysis: quick.py"""
+
+
+def quicksort(l, r, arr):
+    if len(arr) == 1:
+        return arr
+
+    if l < r:
+        p = partition(l, r, arr)
+        quicksort(l, p - 1, arr)
+        quicksort(p + 1, r, arr)
+    return arr
+
+
+def partition(l, r, arr) -> int:
+    pivot, pointer = arr[r], l
+
+    for i in range(l, r):
+        if arr[i] <= pivot:
+            arr[i], arr[pointer] = arr[pointer], arr[i]
+            pointer += 1
+
+    arr[pointer], arr[r] = arr[r], arr[pointer]
+    return pointer
+
+
+"""Assignment 2 Quick Vs Merge Sort Time Analysis: quick.py"""
+
+
+def quicksort(l, r, arr):
+    if len(arr) == 1:
+        return arr
+
+    if l < r:
+        p = partition(l, r, arr)
+        quicksort(l, p - 1, arr)
+        quicksort(p + 1, r, arr)
+    return arr
+
+
+def partition(l, r, arr) -> int:
+    pivot, pointer = arr[r], l
+
+    for i in range(l, r):
+        if arr[i] <= pivot:
+            arr[i], arr[pointer] = arr[pointer], arr[i]
+            pointer += 1
+
+    arr[pointer], arr[r] = arr[r], arr[pointer]
+    return pointer
+
+
+"""Assignment 2 Quick Vs Merge Sort Time Analysis: tests.py"""
+import numpy as np
+import random
+
+
+def create_test_case(x: int):
+    i = random.randint(0, 1000)
+
+    arr = np.arange(x, x + i)
+
+    arr = [*arr]
+
+    random.shuffle(arr)
+
+    return arr
+
+
+def create_best_case(x: int):
+    i = random.randint(0, 1000)
+
+    arr = np.arange(x, x + i)
+
+    arr = [*arr]
+
+    return arr
+
+
+def create_worst_case(x: int):
+    i = random.randint(0, 1000)
+
+    arr = np.arange(x, x + i)
+
+    arr = [*arr]
+
+    arr.reverse()
+
+    return arr
+
+
+if __name__ == "__main__":
+    case1 = create_test_case(30)
+    case2 = create_test_case(50)
+    case3 = create_test_case(90)
+    case4 = create_test_case(20)
+    case5 = create_test_case(40)
+
+    print(case1)
+    print(case2)
+    print(case3)
+    print(case4)
+    print(case5)
+
+
+"""Assignment 3 Knapsack: main.py"""
+from typing import List
+
+
+class Node:
+    def __init__(self, p, w) -> None:
+        self.p = p
+        self.w = w
+        self.pbw = p / w
+        self.x = 0
+
+    def profit(self):
+        return self.p * self.x
+
+    def __repr__(self) -> str:
+        return f"Profit: {self.p}; Weight: {self.w}; Profit by Weight: {self.pbw}; Portion: {self.x}"
+
+
+def sorter(a):
+    return sorted(a, key=lambda x: x.pbw)
+
+
+def parts(M: int, w: int, wo: int):
+    return (M - w) / wo
+
+
+def print_result(arr: List):
+    from rich.table import Table
+    from rich import print as prt
+
+    tb = Table()
+    tb.add_column("[green]Weight (W)")
+    tb.add_column("[green]Profit (P)")
+    tb.add_column("[blue]Profit By Weight (P/W)")
+    tb.add_column("[red]Portion (X)")
+
+    profit = 0
+    for node in arr:
+        tb.add_row(str(node.w), str(node.p), str(node.pbw), str(node.x))
+        profit += node.profit()
+
+    prt(tb)
+
+    prt(f"Total profit: [blue]{profit}")
+
+
+def print_normal(arr: List):
+
+    profit = 0
+    for node in arr:
+        print(node)
+        profit += node.profit()
+
+    print(f"Total profit: {profit}")
+
+
+def main(n: int, M: int, *args):
+    import cProfile
+    import pstats
+
+    pf = cProfile.Profile()
+    pf.enable()
+
+    done = False
+
+    arr = []
+
+    if len(args) == n:
+        pass
+    else:
+        print("Invalid number of parameters")
+        return
+
+    for w, p in args:
+        arr.append(Node(p, w))
+
+    arr = sorter(arr)
+    arr.reverse()
+
+    agg = 0
+    for node in arr:
+        if done == True:
+            break
+
+        if node.w >= M or node.w + agg >= M:
+            node.x = parts(M, agg, node.w)
+            break
+
+        agg += node.w
+        node.x = 1
+
+    print_result(arr)
+
+    pf.disable()
+    stat = pstats.Stats(pf)
+    stat.strip_dirs().dump_stats("Knapsack analysis.prof")
+    # print_normal(arr)
+
+
+if __name__ == "__main__":
+    main(5, 20, (3, 10), (5, 20), (5, 21), (8, 30), (4, 16))
+
+
+"""Assignment 4 All Pairs Shortest Path: main.py"""
+# Number of vertices in the graph
+V = 4
+INF = 99999
+
+
+def floydWarshall(graph):
+
+    dist = list(map(lambda i: list(map(lambda j: j, i)), graph))
+
+    for k in range(V):
+        for i in range(V):
+            for j in range(V):
+                dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])
+    printSolution(dist)
+
+
+def printSolution(dist):
+    print(
+        "Following matrix shows the shortest distances between every pair of vertices"
+    )
+    for i in range(V):
+        for j in range(V):
+            if dist[i][j] == INF:
+                print("%7s" % ("INF"), end=" ")
+            else:
+                print("%7d\t" % (dist[i][j]), end=" ")
+            if j == V - 1:
+                print()
+
+
+if __name__ == "__main__":
+    graph = [[0, 5, INF, 10], [INF, 0, 3, INF], [INF, INF, 0, 1], [INF, INF, INF, 0]]
+    floydWarshall(graph)
+
+
+"""Assignment 5 0/1 Knapsack: main.py"""
+import dp
+import backtrack
+import branchandbound
+
+
+def main(n, w, elems):
+    """Main Driver Function of All 3 Algorithms"""
+
+    val = elems[0]
+    wt = elems[1]
+
+    print(f"No. of Elements: {n}")
+    print(f"Max Weight: {w}")
+    print("Elements:")
+    for i in zip(wt, val):
+        print(f"    Weight: {i[0]}, Value: {i[1]}")
+
+    dpans = dp.knapsack(n, wt, val, w)
+    backans = backtrack.knapsack(w, wt, val, n)
+    bbans = branchandbound.knapsack(w, wt, val, n)
+
+    print(f"DP Ans: {dpans}")
+    print(f"BackTrack Ans: {backans}")
+    print(f"Branch and Bound Ans: {bbans}")
+
+
+# if __name__ == "__main__":
+#     n = int(input("Number of Elements: "))
+#     w = int(input("Enter max weight: "))
+#     elems = [[], []]
+#     print("Enter elements value and weight")
+#     for i in range(n):
+#         a, b = input(f"Enter element {i + 1}: ").split()
+#         elems[0].append(int(a))
+#         elems[1].append(int(b))
+#     main(n, w, elems)
+
+
+if __name__ == "__main__":
+    n = 5
+    w = 20
+    elems = [[10, 20, 21, 30, 16], [3, 5, 5, 8, 4]]
+    main(n, w, elems)
+
+
+"""Assignment 5 0/1 Knapsack: dp.py"""
+
+
+def knapsack(n, wt, val, W):
+
+    K = [[0 for x in range(W + 1)] for x in range(n + 1)]
+
+    for i in range(n + 1):
+        for w in range(W + 1):
+            if i == 0 or w == 0:
+                K[i][w] = 0
+
+            elif wt[i - 1] <= w:
+                K[i][w] = max(val[i - 1] + K[i - 1][w - wt[i - 1]], K[i - 1][w])
+            else:
+                K[i][w] = K[i - 1][w]
+    return K[n][W]
+
+
+"""Assignment 5 0/1 Knapsack: branchandbound.py"""
+
+
+def knapsack(W, w, p, n):
+    """Super Complex Function"""
+    p_per_weight = [a / b for a, b in zip(p, w)]
+
+    class Priority_Queue:
+        def __init__(self):
+            self.pqueue = []
+            self.length = 0
+
+        def insert(self, node):
+            for i in self.pqueue:
+                get_bound(i)
+            i = 0
+            while i < len(self.pqueue):
+                if self.pqueue[i].bound > node.bound:
+                    break
+                i += 1
+            self.pqueue.insert(i, node)
+            self.length += 1
+
+        def print_pqueue(self):
+            for i in list(range(len(self.pqueue))):
+                print("pqueue", i, "=", self.pqueue[i].bound)
+
+        def remove(self):
+            try:
+                result = self.pqueue.pop()
+                self.length -= 1
+            except:
+                print("Priority queue is empty, cannot pop from empty list.")
+            else:
+                return result
+
+    class Node:
+        def __init__(self, level, profit, weight):
+            self.level = level
+            self.profit = profit
+            self.weight = weight
+            self.items = []
+
+    def get_bound(node):
+        if node.weight >= W:
+            return 0
+        else:
+            result = node.profit
+            j = node.level + 1
+            totweight = node.weight
+            while j <= n - 1 and totweight + w[j] <= W:
+                totweight = totweight + w[j]
+                result = result + p[j]
+                j += 1
+            k = j
+            if k <= n - 1:
+                result = result + (W - totweight) * p_per_weight[k]
+            return result
+
+    nodes_generated = 0
+    pq = Priority_Queue()
+
+    # v initialized to be the root with level = 0, profit = $0, weight = 0
+    v = Node(-1, 0, 0)
+    nodes_generated += 1
+    maxprofit = 0  # maxprofit initialized to $0
+    v.bound = get_bound(v)
+    # print("v.bound = ", v.bound)
+
+    pq.insert(v)
+
+    while pq.length != 0:
+
+        v = pq.remove()  # remove node with best bound
+        #    print("\nNode removed from pq.")
+        #    print("Priority Queue: ")
+        #    pq.print_pqueue()
+
+        #    print("\nmaxprofit = ", maxprofit)
+        #    print("Parent Node: ")
+        #    print("v.level = ", v.level, "v.profit = ", v.profit, "v.weight = ", v.weight, "v.bound = ", v.bound, "v.items = ", v.items)
+
+        if v.bound > maxprofit:  # check if node is still promising
+            # set u to the child that includes the next item
+            u = Node(0, 0, 0)
+            nodes_generated += 1
+            u.level = v.level + 1
+            u.profit = v.profit + p[u.level]
+            u.weight = v.weight + w[u.level]
+            # take v's list and add u's list
+            u.items = v.items.copy()
+            u.items.append(u.level)  # adds next item
+            #        print("child that includes the next item: ")
+            #        print("Child 1:")
+            #        print("u.level = ", u.level, "u.profit = ", u.profit, "u.weight = ", u.weight)
+            #        print("u.items = ", u.items)
+            if u.weight <= W and u.profit > maxprofit:
+                # update maxprofit
+                maxprofit = u.profit
+                #            print("\nmaxprofit updated = ", maxprofit)
+                bestitems = u.items
+            #            print("bestitems = ", bestitems)
+            u.bound = get_bound(u)
+            #        print("u.bound = ", u.bound)
+            if u.bound > maxprofit:
+                pq.insert(u)
+            #            print("Node u1 inserted into pq.")
+            #            print("Priority Queue : ")
+            #            pq.print_pqueue()
+            # set u to the child that does not include the next item
+            u2 = Node(u.level, v.profit, v.weight)
+            nodes_generated += 1
+            u2.bound = get_bound(u2)
+            u2.items = v.items.copy()
+            #        print("child that doesn't include the next item: ")
+            #        print("Child 2:")
+            #        print("u2.level = ", u2.level, "u2.profit = ", u2.profit, "u2.weight = ", u2.weight, "u2.bound = ", u2.bound)
+            #        print("u2.items = ", u2.items)
+            if u2.bound > maxprofit:
+                pq.insert(u2)
+    #            print("Node u2 inserted into pq.")
+    #            print("Priority Queue : ")
+    #            pq.print_pqueue()
+
+    # print("Maxprofit = ", maxprofit)
+    # print("nodes generated = ", nodes_generated)
+    # print("bestitems = ", bestitems)
+    return maxprofit
+
+
+"""Assignment 5 0/1 Knapsack: backtrack.py"""
+
+
+def knapsack(W, wt, val, n):
+    if n == 0 or W == 0:
+        return 0
+    if wt[n - 1] > W:
+        return knapsack(W, wt, val, n - 1)
+    else:
+        return max(
+            val[n - 1] + knapsack(W - wt[n - 1], wt, val, n - 1),
+            knapsack(W, wt, val, n - 1),
+        )
+
+
+"""Assignment 6: N Queens Problem:main.py"""
+
+global N
+
+
+def print_sol(board):
+    for i in range(N):
+        print(" | ".join([str(j) for j in board[i]]))
+
+
+def is_safe(board, row, col):
+    for i in range(col):
+        if board[row][i] == 1:
+            return False
+
+    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
+        if board[i][j] == 1:
+            return False
+
+    for i, j in zip(range(row, N, 1), range(col, -1, -1)):
+        if board[i][j] == 1:
+            return False
+
+    return True
+
+
+def solve_N_Queens(board, col):
+
+    if col >= N:
+        return True
+
+    for i in range(N):
+        if is_safe(board, i, col):
+            board[i][col] = 1
+
+            if solve_N_Queens(board, col + 1):
+                return True
+
+            board[i][col] = 0
+    return False
+
+
+def main():
+    global N
+    board = [[0 for _ in range(N)] for _ in range(N)]
+    if solve_N_Queens(board, 0):
+        print(f"Solution for {N}X{N} Queens Problem:")
+        print_sol(board)
+    else:
+        print("No Solution found")
+
+
+if __name__ == "__main__":
+    global N
+    N = int(input("Enter N: "))
+    main()
+
+
+"""Assignment 7 Subset Sum Problem: main.py"""
+
+
+def calculate(num_set, req_sum):
+    """Calculates the solution
+    Takes set of numbers and required sum as parameters
+    """
+    sublists = get_sublists(num_set)
+    solutionLists = []
+    solutions = 0
+    for i in sublists:
+        if sum(i) == req_sum:
+            solutions += 1
+            solutionLists.append(i)
+
+    return solutionLists, solutions
+
+
+def get_sublists(num_set):
+    """Returns a list of Sublists from given list parameter"""
+    from itertools import combinations
+
+    lists = []
+    for i in range(len(num_set) + 1):
+        lists += [list(j) for j in combinations(num_set, i)]
+
+    return lists
+
+
+def main():
+    """Main Function of the Program"""
+    numset = input("Enter the elements: ").split()
+    numset = [int(i) for i in numset]
+
+    req_sum = int(input("Sum required: "))
+
+    solutionsLists, solutions = calculate(numset, req_sum)
+    print(f"Number of Solutions available are: {solutions}")
+    print(f"Solution Subsets are: {solutionsLists}")
+
+
+if __name__ == "__main__":
+    main()
+
+
+
+"""Assignment 8 Travelling Salesman Problem: main.py"""
+from sys import maxsize
+from itertools import permutations
+
+
+def travellingSalesmanProblem(graph, s, v):
+    vertex = []
+    for i in range(v):
+        if i != s:
+            vertex.append(i)
+
+    min_path = maxsize
+    next_permutation = permutations(vertex)
+    da_path = []
+    for i in next_permutation:
+        current_pathweight = 0
+        k = s
+        for j in i:
+            current_pathweight += graph[k][j]
+            k = j
+        current_pathweight += graph[k][s]
+
+        if min_path > current_pathweight:
+            min_path = current_pathweight
+            da_path = i
+
+    return min_path, da_path
+
+
+def main(graph, s, v):
+    min_path, da_path = travellingSalesmanProblem(graph, s, v)
+    da_path = [s, *da_path, s]
+    da_path = [str(i + 1) for i in da_path]
+    a = " ⇉ ".join(da_path)
+    print(f"Minimum Path Length: {min_path}")
+    print(f"Viable Path: {a}")
+
+
+if __name__ == "__main__":
+    s = 0
+    # graph = [
+    #     [0, maxsize, maxsize, 10, 20],
+    #     [maxsize, 0, 50, 30, 40],
+    #     [maxsize, 50, 0, maxsize, 60],
+    #     [10, 30, maxsize, 0, maxsize],
+    #     [20, 40, 60, maxsize, 0],
+    # ]
+    graph = [
+        [0, 5, 5, 5, 25],
+        [5, 0, 10, 5, 5],
+        [5, 10, 0, 15, 5],
+        [5, 5, 15, 0, 20],
+        [25, 5, 5, 20, 0],
+    ]
+    v = 5
+    main(graph, s, v)

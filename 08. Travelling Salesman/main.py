@@ -1,3 +1,4 @@
+"""Assignment 8 Travelling Salesman Problem: main.py"""
 from sys import maxsize
 from itertools import permutations
 
