@@ -1,3 +1,6 @@
+"""Assignment 5 0/1 Knapsack: backtrack.py"""
+
+
 def knapsack(W, wt, val, n):
     if n == 0 or W == 0:
         return 0

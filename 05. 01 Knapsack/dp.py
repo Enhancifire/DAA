@@ -1,9 +1,7 @@
 """Assignment 5 0/1 Knapsack: dp.py"""
 
 
-def knapsack(n, elems, W):
-    val = elems[0]
-    wt = elems[1]
+def knapsack(n, wt, val, W):
 
     K = [[0 for x in range(W + 1)] for x in range(n + 1)]
 

@@ -7,15 +7,22 @@ import branchandbound
 def main(n, w, elems):
     """Main Driver Function of All 3 Algorithms"""
 
-    dpans = dp.knapsack(n, elems, w)
     val = elems[0]
     wt = elems[1]
-    backans = backtrack.knapsack(w, wt, val, n)
-    branchandbound.knapsack(n, elems, w)
 
-    print()
+    print(f"No. of Elements: {n}")
+    print(f"Max Weight: {w}")
+    print("Elements:")
+    for i in zip(wt, val):
+        print(f"    Weight: {i[0]}, Value: {i[1]}")
+
+    dpans = dp.knapsack(n, wt, val, w)
+    backans = backtrack.knapsack(w, wt, val, n)
+    bbans = branchandbound.knapsack(w, wt, val, n)
+
     print(f"DP Ans: {dpans}")
     print(f"BackTrack Ans: {backans}")
+    print(f"Branch and Bound Ans: {bbans}")
 
 
 # if __name__ == "__main__":
